@@ -49,7 +49,7 @@ for filePath in $FILES; do
     fi
 
     # add transaction handlers to queries file
-    QUERY="BEGIN; $(cat ${filePath}) COMMIT;";
+    QUERY="BEGIN; $(cat ${filePath}); COMMIT;";
 
     # execute modified query
     ${MYSQL} -e "${QUERY}";
