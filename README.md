@@ -3,6 +3,11 @@
 Simple script creating migrations for MySQL databases.
 If you have a pleasure to use legacy frameworks that didn't have their own migration scripts - feel free to use.
 
+## Requirements
+
+- Bash
+- MySQL client
+
 ## How to use?
 
 1. Clone
