@@ -5,7 +5,20 @@ DB_PASS=
 DB_NAME=
 MIGRATIONS_TABLE='migrations'
 SCHEMA_QUERY="SELECT COUNT(*) FROM information_schema.tables \
-        WHERE table_schema='${DB_NAME}' \
-        AND table_name='${MIGRATIONS_TABLE}';";
+    WHERE table_schema='${DB_NAME}' \
+    AND table_name='${MIGRATIONS_TABLE}';";
+TABLE_QUERY="CREATE TABLE ${MIGRATIONS_TABLE} (\
+    id INT AUTO_INCREMENT, \
+    filename VARCHAR(255), \
+    created_at DATETIME, \
+    PRIMARY KEY(id), \
+    UNIQUE (filename)
+  );";
 FILES="./queries/*.sql";
 CORRUPTED_FILES=()
+
+#COLORS
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color

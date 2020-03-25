@@ -12,41 +12,39 @@ until mysql -s -u$DB_USER -p$DB_PASS $DB_NAME -e ";" ; do
 done
 
 echo "Connected to database successfuly!"
+printf "\n\n"
 
 MYSQL="mysql -N -s -u$DB_USER -p$DB_PASS $DB_NAME"
 
-if [ $(mysql -N -s -u$DB_USER -p$DB_PASS -e "${SCHEMA_QUERY}") -eq 1 ]; then
+if [ $(${MYSQL} -e "${SCHEMA_QUERY}") -eq 1 ]; then
     echo "Table ${MIGRATIONS_TABLE} exists!";
 else
     echo "Table ${MIGRATIONS_TABLE} does not exist"
     echo "Creating ${MIGRATIONS_TABLE} table..."
-    TABLE_QUERY="CREATE TABLE ${MIGRATIONS_TABLE} (\
-      id INT AUTO_INCREMENT, \
-      filename VARCHAR(255), \
-      created_at DATETIME, \
-      PRIMARY KEY(id), \
-      UNIQUE (filename)
-    );";
 
     $MYSQL -e "$TABLE_QUERY";
 
-    if [ $(mysql -N -s -u$DB_USER -p$DB_PASS -e "${SCHEMA_QUERY}") -eq 1 ]; then
+    if [ $(${MYSQL} -e "${SCHEMA_QUERY}") -eq 1 ]; then
       echo "Table ${MIGRATIONS_TABLE} created successfuly!"
     else
       echo "For some reason I couldn't create ${MIGRATIONS_TABLE} table :("
-      echo "Terminating..."
+      printf "\nTerminating...\n"
       exit 1
     fi
 fi
 
+printf "\n\n"
 echo "Migrating files..."
 
 for filePath in $FILES; do
     FILE=${filePath##*/}
+    printf "\n\n"
+    echo "----------------------------------"
     echo "Found file: ${FILE}"
 
-    if [ $(${MYSQL} -e "SELECT COUNT(*) FROM migrations WHERE filename='${FILE}'") -eq 1 ]; then
-        echo "$FILE already migrated. Skipping..."
+    if [ $(${MYSQL} -e "SELECT COUNT(*) FROM ${MIGRATIONS_TABLE} WHERE filename='${FILE}'") -eq 1 ]; then
+        printf "$FILE already migrated. ${YELLOW}Skipping...${NC}\n"
+        echo "----------------------------------"
         continue
     fi
 
@@ -57,22 +55,43 @@ for filePath in $FILES; do
     ${MYSQL} -e "${QUERY}";
 
     if [ "$?" -eq 0 ]; then
-        echo "Query OK"
+        echo "----------------------------------"
+        echo "**********************************"
+        printf "************ Query ${GREEN}OK${NC} ************\n"
+        echo "**********************************"
 
         SAVE_MIGRATION_QUERY="INSERT INTO ${MIGRATIONS_TABLE} VALUES (null, '${FILE}', NOW())"
         ${MYSQL} -e "${SAVE_MIGRATION_QUERY}"
     else
-        echo "Query incorrect. Skipping..."
-
         CORRUPTED_FILES+=("${FILE}")
+
+        while true; do
+          printf "\n*!!!* File ${RED}corrupted${NC}. Would you like to skip this one and continue? (y/n): ";
+          read -p "" choice
+          case $choice in
+              [Yy]* ) printf "\n$FILE ${YELLOW}skipped${NC}"; break;;
+              [Nn]* ) printf "\nTerminating...\n"; exit;;
+              * ) echo "Please answer yes or no.";;
+          esac
+        done
     fi
+    echo "----------------------------------"
 done
 
+printf "\n\n"
+echo "----------****DONE****------------"
+echo "---"
+
 if [ ${#CORRUPTED_FILES[@]} -eq 0 ]; then
-    echo "Migration OK!"
+    printf "    Migration ${GREEN}OK${NC}!\n";
 else
-    echo "Migration OK, but"
-    echo "Corrupted files: ${CORRUPTED_FILES[*]}"
+    printf "    Migration ${GREEN}OK${NC}, but...\n";
+    printf "    ${RED}Corrupted${NC} files: ${CORRUPTED_FILES[*]}\n";
 fi
+
+echo "---"
+echo "----------****DONE****------------"
+
+printf "\n\n"
 
 exit 1
