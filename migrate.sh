@@ -1,13 +1,19 @@
 #!/bin/bash
 . $(dirname $0)/config.sh
 
-read -srp "Enter your database password: " DB_PASS
+if [ -z "$DB_PASS" ]; then
+      read -srp "Enter your database password: " DB_PASS
+      printf "\n"
+fi
 
 until mysql -s -u$DB_USER -p$DB_PASS $DB_NAME -e ";" ; do
-    read -srp "Can't connect to database, please retry: " DB_PASS
+    read -srp "Can't connect to database, enter password: " DB_PASS
+    printf "\n"
 done
 
 echo "Connected to database successfuly!"
+
+MYSQL="mysql -N -s -u$DB_USER -p$DB_PASS $DB_NAME"
 
 if [ $(mysql -N -s -u$DB_USER -p$DB_PASS -e "${SCHEMA_QUERY}") -eq 1 ]; then
     echo "Table ${MIGRATIONS_TABLE} exists!";
@@ -22,7 +28,7 @@ else
       UNIQUE (filename)
     );";
 
-    mysql -u$DB_USER -p$DB_PASS $DB_NAME -e "$TABLE_QUERY";
+    $MYSQL -e "$TABLE_QUERY";
 
     if [ $(mysql -N -s -u$DB_USER -p$DB_PASS -e "${SCHEMA_QUERY}") -eq 1 ]; then
       echo "Table ${MIGRATIONS_TABLE} created successfuly!"
@@ -39,21 +45,26 @@ for filePath in $FILES; do
     FILE=${filePath##*/}
     echo "Found file: ${FILE}"
 
-    if [ $(mysql -N -s -u$DB_USER -p$DB_PASS $DB_NAME -e \
-      "SELECT COUNT(*) FROM migrations WHERE filename='${FILE}'") -eq 1 ]; then
+    if [ $(${MYSQL} -e "SELECT COUNT(*) FROM migrations WHERE filename='${FILE}'") -eq 1 ]; then
         echo "$FILE already migrated. Skipping..."
         continue
     fi
 
-    mysql -N -s -u$DB_USER -p$DB_PASS $DB_NAME < $filePath;
+    # add transaction handlers to queries file
+    QUERY="BEGIN; $(cat ${filePath}) COMMIT;";
+
+    # execute modified query
+    ${MYSQL} -e "${QUERY}";
 
     if [ "$?" -eq 0 ]; then
         echo "Query OK"
+
         SAVE_MIGRATION_QUERY="INSERT INTO ${MIGRATIONS_TABLE} VALUES (null, '${FILE}', NOW())"
-        mysql -N -s -u$DB_USER -p$DB_PASS $DB_NAME -e "${SAVE_MIGRATION_QUERY}"
+        ${MYSQL} -e "${SAVE_MIGRATION_QUERY}"
     else
-        CORRUPTED_FILES+=("${FILE}")
         echo "Query incorrect. Skipping..."
+
+        CORRUPTED_FILES+=("${FILE}")
     fi
 done
 
