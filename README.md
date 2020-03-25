@@ -3,7 +3,7 @@
 Simple script creating migrations for MySQL databases.
 If you have a pleasure to use legacy frameworks that didn't have their own migration scripts - feel free to use.
 
-##How to use?
+## How to use?
 
 1. Clone
 2. Put your queries to `queries` directory
