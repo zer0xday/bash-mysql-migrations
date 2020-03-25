@@ -83,10 +83,10 @@ echo "----------****DONE****------------"
 echo "---"
 
 if [ ${#CORRUPTED_FILES[@]} -eq 0 ]; then
-    printf "    Migration ${GREEN}OK${NC}!\n";
+    printf "          Migration ${GREEN}OK${NC}!\n";
 else
-    printf "    Migration ${GREEN}OK${NC}, but...\n";
-    printf "    ${RED}Corrupted${NC} files: ${CORRUPTED_FILES[*]}\n";
+    printf "          Migration ${GREEN}OK${NC}, but...\n";
+    printf "          ${RED}Corrupted${NC} files: ${CORRUPTED_FILES[*]}\n";
 fi
 
 echo "---"
