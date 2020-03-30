@@ -16,4 +16,6 @@ If you have a pleasure to use legacy frameworks that didn't have their own migra
 4. Set your database credentials in `config.sh` you can change migrations table name as well
 5. Run script `./migrate.sh`
 
+**To create new query file you can use `create.sh` script, e.g.: `./create.sh add-sample-column` will make new sql file with actual date and your task name given as parameter**
+
 Enjoy!
