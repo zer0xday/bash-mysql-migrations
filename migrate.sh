@@ -6,7 +6,7 @@ if [ -z "$DB_PASS" ]; then
       printf "\n"
 fi
 
-until mysql -s -u$DB_USER -p$DB_PASS $DB_NAME -e ";" ; do
+until mysql -s -u$DB_USER -p$DB_PASS $DB_NAME -h$DB_HOST -e ";" ; do
     read -srp "Can't connect to database, enter password: " DB_PASS
     printf "\n"
 done
