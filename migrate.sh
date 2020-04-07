@@ -14,7 +14,7 @@ done
 echo "Connected to database successfuly!"
 printf "\n\n"
 
-MYSQL="mysql -N -s -u$DB_USER -p$DB_PASS $DB_NAME"
+MYSQL="mysql -N -s -u$DB_USER -p$DB_PASS $DB_NAME -h$DB_HOST"
 
 if [ $(${MYSQL} -e "${SCHEMA_QUERY}") -eq 1 ]; then
     echo "Table ${MIGRATIONS_TABLE} exists!";

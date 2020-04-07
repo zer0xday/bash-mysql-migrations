@@ -3,6 +3,7 @@
 DB_USER=
 DB_PASS=
 DB_NAME=
+DB_HOST=
 MIGRATIONS_TABLE='migrations'
 SCHEMA_QUERY="SELECT COUNT(*) FROM information_schema.tables \
     WHERE table_schema='${DB_NAME}' \
